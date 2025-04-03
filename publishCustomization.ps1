@@ -15,10 +15,9 @@ $packageName = $versionName
 $username = $env:ACUMATICA_USERNAME
  $password = $env:ACUMATICA_PASSWORD
  
-
 # Ensure the ZIP file exists
 if (-not (Test-Path $escapedPathzipFilePath)) {
-    Write-Host "Error: Customization package '$zipFilePath1' not found. Cannot publish."
+    Write-Host "Error: Customization package '$zipFilePath1' not found.Cannot publish."
     exit 1
 }
 
