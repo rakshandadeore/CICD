@@ -1,0 +1,31 @@
+﻿<ScreenWithRights AccessRightsMergeRule="GrantAll">
+    <data-set>
+        <relations format-version="3" relations-version="20240201" main-table="SiteMap">
+            <link from="RolesInCache (ScreenID)" to="SiteMap (ScreenID)" />
+            <link from="RolesInGraph (ScreenID)" to="SiteMap (ScreenID)" />
+            <link from="RolesInMember (ScreenID)" to="SiteMap (ScreenID)" />
+            <link from="Roles (Rolename, ApplicationName)" to="RolesInCache (Rolename, ApplicationName)" type="FromMaster" updateable="False" />
+            <link from="Roles (Rolename, ApplicationName)" to="RolesInGraph (Rolename, ApplicationName)" type="FromMaster" updateable="False" />
+            <link from="Roles (Rolename, ApplicationName)" to="RolesInMember (Rolename, ApplicationName)" type="FromMaster" updateable="False" />
+        </relations>
+        <layout>
+            <table name="SiteMap">
+                <table name="RolesInCache" uplink="(ScreenID) = (ScreenID)" />
+                <table name="RolesInGraph" uplink="(ScreenID) = (ScreenID)" />
+                <table name="RolesInMember" uplink="(ScreenID) = (ScreenID)" />
+            </table>
+            <table name="Roles" />
+        </layout>
+        <data>
+            <SiteMap>
+                <row Title="Ports of Entry" Url="~/Pages/ZW/ZW101000.aspx" ScreenID="ZW101000" NodeID="a2aec140-7a19-458b-876c-edc7a7898e52" ParentID="00000000-0000-0000-0000-000000000000" SelectedUI="E">
+                    <RolesInGraph Rolename="*" ApplicationName="/" Accessrights="4" />
+                </row>
+            </SiteMap>
+            <Roles>
+                <row Rolename="Customizer" ApplicationName="/" Descr="Customizer" Guest="0" />
+                <row Rolename="Administrator" ApplicationName="/" Descr="System Administrator" Guest="0" />
+            </Roles>
+        </data>
+    </data-set>
+</ScreenWithRights>

@@ -1,0 +1,54 @@
+name: Deploy Acumatica Customization
+
+on:
+  push:
+    tags:
+      - '*'  # Trigger on any tag push
+  workflow_dispatch:  # Manual trigger without requiring versionName input
+
+jobs:
+  build_and_publish:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set Up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
+     
+      - name: Build CustomizationPackageTools.exe
+        run: |
+          cd CustomizationPackageTools
+          dotnet build --configuration Release
+          cd ..
+        shell: pwsh
+      
+      - name: Extract Version from Tag
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          $versionName = "${{ github.ref }}".Replace('refs/tags/', '')
+          echo "VERSION_NAME=$versionName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+
+      - name: Run Build Customization
+        shell: pwsh
+        run: |
+          ./buildCustomization.ps1 "${{ env.VERSION_NAME }}"
+
+      - name: Run Publish Customization
+        shell: pwsh
+        env:
+          ACUMATICA_URL: ${{ secrets.ACUMATICA_URL }}
+          ACUMATICA_USERNAME: ${{ secrets.ACUMATICA_USERNAME }}
+          ACUMATICA_PASSWORD: ${{ secrets.ACUMATICA_PASSWORD }}
+        run: |
+          ./publishCustomization.ps1 "${{ env.VERSION_NAME }}"
+
+      - name: Upload ZIP Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: acumatica-customization
+          path: Customization/${{ env.VERSION_NAME }}/*.zip
