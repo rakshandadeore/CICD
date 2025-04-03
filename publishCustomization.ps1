@@ -7,8 +7,8 @@ if (-not $versionName) {
     exit 1
 }
 
-$zipFilePath = "Customization\$versionName\$versionName.zip"
-$escapedPathzipFilePath = $zipFilePath -replace '\[', '`[' -replace '\]', '`]'
+$zipFilePath1 = "Customization\$versionName\$versionName.zip"
+$escapedPathzipFilePath = $zipFilePath1 -replace '\[', '`[' -replace '\]', '`]'
 #$zipFilePath = "Customization\$versionName.zip"
 $packageName = $versionName
  $serverUrl = $env:ACUMATICA_URL
@@ -18,7 +18,7 @@ $username = $env:ACUMATICA_USERNAME
 
 # Ensure the ZIP file exists
 if (-not (Test-Path $escapedPathzipFilePath)) {
-    Write-Host "Error: Customization package '$zipFilePath' not found. Cannot publish."
+    Write-Host "Error: Customization package '$zipFilePath1' not found. Cannot publish."
     exit 1
 }
 
@@ -44,4 +44,4 @@ if (-not $Level) {
 }
 
 $cmd = "CustomizationPackageTools\bin\Release\net8.0\CustomizationPackageTools.exe"
-&$cmd publish --packagefilename $zipFilePath --packagename $packageName --url $serverUrl --username $username --password $password --description "$versionName" --level $Level
+&$cmd publish --packagefilename $zipFilePath1 --packagename $packageName --url $serverUrl --username $username --password $password --description "$versionName" --level $Level
