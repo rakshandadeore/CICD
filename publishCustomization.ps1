@@ -11,13 +11,10 @@ $zipFilePath = "Customization\$versionName\$versionName.zip"
 $escapedPathzipFilePath = $zipFilePath -replace '\[', '`[' -replace '\]', '`]'
 #$zipFilePath = "Customization\$versionName.zip"
 $packageName = $versionName
-# $serverUrl = $env:ACUMATICA_URL
-# $username = $env:ACUMATICA_USERNAME
-# $password = $env:ACUMATICA_PASSWORD
-
-$serverUrl = "http://localhost/ACM24R1241120026"
-$username = "admin"
-$password = "admin"
+ $serverUrl = $env:ACUMATICA_URL
+$username = $env:ACUMATICA_USERNAME
+ $password = $env:ACUMATICA_PASSWORD
+ 
 
 # Ensure the ZIP file exists
 if (-not (Test-Path $escapedPathzipFilePath)) {
