@@ -3,7 +3,7 @@ name: Deploy Acumatica Customizationnnn
 on:
   push:
     tags:
-      - '*'  # Trigger on any tag push
+      - 'refs/tags/*'  # Trigger on any tag push
   workflow_dispatch:  # Manual trigger without requiring versionName input
 
 jobs:
