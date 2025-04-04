@@ -32,25 +32,31 @@ jobs:
 
           Write-Host "Latest Tag: $LATEST_TAG"
           
-          # Output the latest tag so it can be used in subsequent steps
-          echo "latest_tag=$LATEST_TAG" >> $GITHUB_ENV
+          # Set the latest tag as an output variable for later use
+          echo "::set-output name=latest_tag::$LATEST_TAG"
 
       - name: Create new tag based on the latest tag
         run: |
-          # Fetch the latest tag from the environment variable
-          $LATEST_TAG = $env:latest_tag
+          # Fetch the latest tag from the previous step's output
+          LATEST_TAG="${{ steps.get_latest_tag.outputs.latest_tag }}"
 
-          # Extract version numbers from the tag (assumes format USSFence[major.minor.patch.build])
-          $VERSION = $LATEST_TAG -replace "USSFence\[([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)\]", '$1.$2.$3.$4'
-          
-          # Increment the build number (last digit)
-          $versionParts = $VERSION -split '\.'
-          $build = [int]$versionParts[3] + 1
-          $NEW_VERSION = "$($versionParts[0]).$($versionParts[1]).$($versionParts[2]).$build"
+          # If the latest tag is USSFence[1.0.0.0], use it as the new tag
+          if [ "$LATEST_TAG" == "USSFence[1.0.0.0]" ]; then
+            NEW_TAG="USSFence[1.0.0.0]"
+          else
+            # Extract version numbers from the tag (assumes format USSFence[major.minor.patch.build])
+            VERSION=$(echo $LATEST_TAG | sed -E 's/USSFence\[([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)\]/\1.\2.\3.\4/')
+            
+            # Increment the build number (last digit)
+            IFS='.' read -r major minor patch build <<< "$VERSION"
+            ((build++))
+            NEW_VERSION="$major.$minor.$patch.$build"
 
-          # Create new version in USSFence format
-          $NEW_TAG = "USSFence[$NEW_VERSION]"
-          Write-Host "New version tag will be: $NEW_TAG"
+            # Create new version in USSFence format
+            NEW_TAG="USSFence[$NEW_VERSION]"
+          fi
+
+          echo "New version tag will be: $NEW_TAG"
           
           # Tag the current commit with the new version
           git tag "$NEW_TAG"
