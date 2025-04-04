@@ -1,4 +1,4 @@
-name: Auto Tag on Merge
+name: Create and Push Incremental Tag on Main Branch
 
 on:
   push:
@@ -6,73 +6,59 @@ on:
       - main
 
 jobs:
-  create_tag:
+  create-tag:
     runs-on: self-hosted
-
+    
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Fetch all tags from the remote
+      - name: Set up Git configuration
         run: |
-          echo "Fetching all tags from the remote..."
-          git fetch --tags
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
 
-      - name: Get the latest tag
+      - name: Get the latest tag or set default
         id: get_latest_tag
-        shell: powershell
         run: |
-          echo "Attempting to get the latest tag..."
-
-          try {
-              # Try to get the latest tag, fall back to USSFence[1.0.0.0] if no tags exist
-              $LATEST_TAG = git describe --tags --abbrev=0 2>$null
-              if (-not $LATEST_TAG) {
-                  throw "No tags found"
-              }
-          }
-          catch {
-              $LATEST_TAG = "USSFence[1.0.0.0]"
-          }
-
-          Write-Host "Latest Tag: $LATEST_TAG"
+          # Get the latest tag from the repository
+          LATEST_TAG=$(git tag -l 'USSFence[*]' | sort -V | tail -n 1)
           
-          # Output the latest tag so it can be used in the next steps
-          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          # If no tags exist, set the default tag
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="USSFence[1.0.0.0]"
+          fi
 
-      - name: Check if LATEST_TAG is set
+          echo "Latest tag found: $LATEST_TAG"
+
+          # Extract version number and increment it
+          VERSION_PARTS=$(echo $LATEST_TAG | sed 's/^USSFence\[\([0-9]*\.[0-9]*\.[0-9]*\.[0-9]*\)\]$/\1/')
+          
+          if [ -z "$VERSION_PARTS" ]; then
+            echo "Error: Could not parse version from tag $LATEST_TAG"
+            exit 1
+          fi
+
+          # Split version into parts (major, minor, patch, build)
+          IFS='.' read -r -a VERSION_ARRAY <<< "$VERSION_PARTS"
+          
+          # Increment the build number (last part) to generate the next version
+          BUILD_NUM=${VERSION_ARRAY[3]}
+          BUILD_NUM=$((BUILD_NUM + 1))
+
+          # Construct the new tag with incremented build number
+          NEW_TAG="USSFence[${VERSION_ARRAY[0]}.${VERSION_ARRAY[1]}.${VERSION_ARRAY[2]}.$BUILD_NUM]"
+          
+          echo "New tag to create: $NEW_TAG"
+          echo "::set-output name=new_tag::$NEW_TAG"
+
+      - name: Create a new tag
         run: |
-          echo "LATEST_TAG from previous step: ${{ env.LATEST_TAG }}"
+          NEW_TAG="${{ steps.get_latest_tag.outputs.new_tag }}"
+          git tag $NEW_TAG
+          echo "Tag created: $NEW_TAG"
 
-      - name: Create new tag based on the latest tag
-        shell: powershell
+      - name: Push the new tag to the repository
         run: |
-          # Fetch the latest tag from the environment variable
-          $LATEST_TAG = $env:LATEST_TAG
-          Write-Host "LATEST_TAG value: $LATEST_TAG"
-          
-          if ($LATEST_TAG -eq "USSFence[1.0.0.0]") {
-              Write-Host "Using the fallback tag: $LATEST_TAG"
-              $NEW_TAG = "USSFence[1.0.0.0]"
-          }
-          else {
-              # Extract version numbers from the tag (assumes format USSFence[major.minor.patch.build])
-              $VERSION = $LATEST_TAG -replace "USSFence\[([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)\]", '$1.$2.$3.$4'
-              Write-Host "Extracted VERSION: $VERSION"
-              
-              # Increment the build number (last digit)
-              $versionParts = $VERSION -split '\.'
-              $build = [int]$versionParts[3] + 1
-              $NEW_VERSION = "$($versionParts[0]).$($versionParts[1]).$($versionParts[2]).$build"
-              
-              # Create new version in USSFence format
-              $NEW_TAG = "USSFence[$NEW_VERSION]"
-          }
-          
-          Write-Host "New version tag will be: $NEW_TAG"
-          
-          # Tag the current commit with the new version
-          git tag "$NEW_TAG"
-          
-          # Push the new tag to the remote
-          git push origin "$NEW_TAG"
+          NEW_TAG="${{ steps.get_latest_tag.outputs.new_tag }}"
+          git push origin $NEW_TAG
