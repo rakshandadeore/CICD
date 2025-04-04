@@ -41,8 +41,7 @@ jobs:
 
       - name: Check if LATEST_TAG is set
         run: |
-          echo "LATEST_TAG from previous step: ${{ env.LATEST_TAG }}"
-
+          echo "LATEST_TAG from previous step: 
               Write-Host "End Check if LATEST_TAG is set Tag...."
 
 
