@@ -70,7 +70,7 @@ jobs:
       - name: Push the new tag to the repository
         shell: powershell  # Explicitly use PowerShell
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GITHUB_TOKEN
+          GITHUB_TOKEN: ${{ secrets.CICDTOKEN }}  # Use the GITHUB_TOKEN
         run: |
           $NEW_TAG = $env:new_tag
           git push origin $NEW_TAG
