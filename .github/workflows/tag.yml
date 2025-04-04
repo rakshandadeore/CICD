@@ -74,3 +74,13 @@ jobs:
         run: |
           $NEW_TAG = $env:new_tag
           git push origin $NEW_TAG
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.CICDTOKEN }}  # Use the GITHUB_TOKEN to authenticate
+        with:
+          tag_name: ${{ env.new_tag }}  # The tag you want to release
+          body: |
+            This is the release for version ${{ env.new_tag }}.
+            Check out the changes and updates.
