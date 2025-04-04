@@ -33,7 +33,7 @@ jobs:
             $LATEST_TAG = "USSFence-1.0.0.0"
           }
 
-          Write-Host "Latest tag found: $LATEST_TAGGGGGG"
+          
 
           # Extract version number and increment it
           $VERSION_PARTS = $LATEST_TAG -replace '^USSFence-(\d+\.\d+\.\d+\.\d+)$', '$1'
@@ -69,7 +69,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GITHUB_TOKEN
         run: |
           $NEW_TAG = $env:new_tag
-          git push origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/rakshandadeore/CICD.git $NEW_TAG
+          git push origin $NEW_TAG
 
 
         
