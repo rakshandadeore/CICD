@@ -33,11 +33,13 @@ jobs:
           $versionName = "${{ github.ref }}".Replace('refs/tags/', '')
           echo "VERSION_NAME=$versionName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
+            Write-Host "RUNNNNNNNNNNNN"
       - name: Run Build Customization
         shell: powershell
         run: |
           ./buildCustomization.ps1 "${{ env.VERSION_NAME }}"
 
+               Write-Host "BUNNNNNNNNNNNN"
       - name: Run Publish Customization
         shell: powershell
         env:
