@@ -35,7 +35,7 @@ jobs:
           Write-Host "Latest Tag: $LATEST_TAG"
 
           # Write the latest tag to the environment file so it can be used in the next step
-          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          echo "LATEST_TAG=$LATEST_TAG" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
               Write-Host "Latest Tag...."
 
@@ -44,6 +44,12 @@ jobs:
           echo "LATEST_TAG from previous step: ${{ env.LATEST_TAG }}"
 
               Write-Host "End Check if LATEST_TAG is set Tag...."
+
+
+
+
+
+              
 
       - name: Create new tag based on the latest tag
         run: |
