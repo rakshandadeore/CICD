@@ -7,7 +7,7 @@ on:
 
 jobs:
   create-tag:
-    runs-on: [self-hosted, windows]  # Specify the label of your self-hosted runner
+    runs-on: [self-hosted, windows]  # Specify your self-hosted runner
 
     steps:
       - name: Checkout repository
@@ -23,17 +23,17 @@ jobs:
         shell: powershell  # Explicitly use PowerShell
         run: |
           # Get the latest tag from the repository
-          $LATEST_TAG = git tag -l 'USSFence[*]' | Sort-Object | Select-Object -Last 1
+          $LATEST_TAG = git tag -l 'USSFence-*' | Sort-Object | Select-Object -Last 1
 
           # If no tags exist, set the default tag
           if (-not $LATEST_TAG) {
-            $LATEST_TAG = "USSFence[1.0.0.0]"
+            $LATEST_TAG = "USSFence-1.0.0.0"
           }
 
           Write-Host "Latest tag found: $LATEST_TAG"
 
           # Extract version number and increment it
-          $VERSION_PARTS = $LATEST_TAG -replace '^USSFence\[(\d+\.\d+\.\d+\.\d+)\]$', '$1'
+          $VERSION_PARTS = $LATEST_TAG -replace '^USSFence-(\d+\.\d+\.\d+\.\d+)$', '$1'
           
           if (-not $VERSION_PARTS) {
             Write-Error "Error: Could not parse version from tag $LATEST_TAG"
@@ -48,7 +48,7 @@ jobs:
           $BUILD_NUM++
 
           # Construct the new tag with incremented build number
-          $NEW_TAG = "USSFence[$($VERSION_ARRAY[0]).$($VERSION_ARRAY[1]).$($VERSION_ARRAY[2]).$BUILD_NUM]"
+          $NEW_TAG = "USSFence-$($VERSION_ARRAY[0]).$($VERSION_ARRAY[1]).$($VERSION_ARRAY[2]).$BUILD_NUM"
           
           Write-Host "New tag to create: $NEW_TAG"
           echo "new_tag=$NEW_TAG" >> $env:GITHUB_ENV  # Set the new tag as an environment variable
