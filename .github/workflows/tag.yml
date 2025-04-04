@@ -20,10 +20,13 @@ jobs:
           git fetch --tags
 
           # Try to get the latest tag, fall back to USSFence[1.0.0.0] if no tags exist
-          $LATEST_TAG = git describe --tags --abbrev=0 2>$null
-
-          # Check if the $LATEST_TAG is empty or null
-          if (-not $LATEST_TAG) {
+          try {
+              $LATEST_TAG = git describe --tags --abbrev=0 2>$null
+              if (-not $LATEST_TAG) {
+                  throw "No tags found"
+              }
+          }
+          catch {
               $LATEST_TAG = "USSFence[1.0.0.0]"
           }
 
