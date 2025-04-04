@@ -19,61 +19,71 @@ jobs:
           echo "Fetching all tags from the remote..."
           # Fetch all tags from the remote
           git fetch --tags
-          if [ $? -ne 0 ]; then
-            echo "Failed to fetch tags from the remote."
+          
+          # Check if git fetch succeeded
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "Failed to fetch tags from the remote."
             exit 1
-          fi
+          }
 
           echo "Attempting to get the latest tag..."
           # Try to get the latest tag, fall back to USSFence[1.0.0.0] if no tags exist
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "USSFence[1.0.0.0]")
-          echo "Latest Tag: $LATEST_TAG"
+          $LATEST_TAG = git describe --tags --abbrev=0 2>$null
+          if (-not $LATEST_TAG) {
+              $LATEST_TAG = "USSFence[1.0.0.0]"
+          }
+          
+          Write-Host "Latest Tag: $LATEST_TAG"
 
           # Write the latest tag to the environment file so it can be used in the next step
-          echo "LATEST_TAG=$LATEST_TAG" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+          echo "LATEST_TAG=$LATEST_TAG" >> $env:GITHUB_ENV
 
       - name: Check if LATEST_TAG is set
         run: |
-          # Print the environment variable in bash
-          echo "LATEST_TAG from previous step: ${{ env.LATEST_TAG }}"
+          # Print the environment variable in PowerShell
+          Write-Host "LATEST_TAG from previous step: $env:LATEST_TAG"
 
       - name: Create new tag based on the latest tag
         run: |
-          echo "Fetching the latest tag..."
-          LATEST_TAG="${{ env.LATEST_TAG }}"
-          
-          echo "LATEST_TAG value: $LATEST_TAG"
+          # Fetch the latest tag from the environment variable
+          $LATEST_TAG = $env:LATEST_TAG
+
+          Write-Host "LATEST_TAG value: $LATEST_TAG"
           
           # If the latest tag is USSFence[1.0.0.0], use it as the new tag
-          if [ "$LATEST_TAG" == "USSFence[1.0.0.0]" ]; then
-            echo "Using the fallback tag: $LATEST_TAG"
-            NEW_TAG="USSFence[1.0.0.0]"
-          else
+          if ($LATEST_TAG -eq "USSFence[1.0.0.0]") {
+            Write-Host "Using the fallback tag: $LATEST_TAG"
+            $NEW_TAG = "USSFence[1.0.0.0]"
+          } else {
             # Extract version numbers from the tag (assumes format USSFence[major.minor.patch.build])
-            VERSION=$(echo $LATEST_TAG | sed -E 's/USSFence\[([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)\]/\1.\2.\3.\4/')
-            echo "Extracted VERSION: $VERSION"
+            $VERSION = $LATEST_TAG -replace "USSFence\[([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)\]", '$1.$2.$3.$4'
+            Write-Host "Extracted VERSION: $VERSION"
 
             # Increment the build number (last digit)
-            IFS='.' read -r major minor patch build <<< "$VERSION"
-            ((build++))
-            NEW_VERSION="$major.$minor.$patch.$build"
+            $versionParts = $VERSION.Split('.')
+            $build = [int]$versionParts[3] + 1
+            $NEW_VERSION = "$($versionParts[0]).$($versionParts[1]).$($versionParts[2]).$build"
 
             # Create new version in USSFence format
-            NEW_TAG="USSFence[$NEW_VERSION]"
-          fi
+            $NEW_TAG = "USSFence[$NEW_VERSION]"
+          }
 
-          echo "New version tag will be: $NEW_TAG"
+          Write-Host "New version tag will be: $NEW_TAG"
           
           # Tag the current commit with the new version
           git tag "$NEW_TAG"
-          if [ $? -ne 0 ]; then
-            echo "Failed to create the new tag."
+          
+          # Check if git tag succeeded
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "Failed to create the new tag."
             exit 1
-          fi
+          }
 
           # Push the new tag to the remote
           git push origin "$NEW_TAG"
-          if [ $? -ne 0 ]; then
-            echo "Failed to push the new tag to the remote."
+          
+          # Check if git push succeeded
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "Failed to push the new tag to the remote."
             exit 1
-          fi
+          }
