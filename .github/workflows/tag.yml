@@ -33,7 +33,7 @@ jobs:
             $LATEST_TAG = "USSFence-1.0.0.0"
           }
 
-          Write-Host "Latest tag found: $LATEST_TAGGG"
+          Write-Host "Latest tag found: $LATEST_TAGGGGGG"
 
           # Extract version number and increment it
           $VERSION_PARTS = $LATEST_TAG -replace '^USSFence-(\d+\.\d+\.\d+\.\d+)$', '$1'
