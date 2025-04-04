@@ -13,19 +13,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get the latest tag (or set fallback if none exist)
+      - name: Get the latest tag
         id: get_latest_tag
         run: |
           # Fetch all tags from the remote
           git fetch --tags
 
-          # Try to get the latest tag, fallback to USSFence[1.0.0.0] if no tags exist
-          LATEST_TAG=$(git describe --tags --abbrev=0 || echo "USSFence[1.0.0.0]")
-
-          # Output the latest tag or fallback tag
+          # Try to get the latest tag, fall back to USSFence[1.0.0.0] if no tags exist
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "USSFence[1.0.0.0]")
           echo "Latest Tag: $LATEST_TAG"
           
-          # Set the tag as an environment variable for use in later steps
+          # Output the latest tag so it can be used in subsequent steps
           echo "latest_tag=$LATEST_TAG" >> $GITHUB_ENV
 
       - name: Create new tag based on the latest tag
@@ -33,25 +31,16 @@ jobs:
           # Fetch the latest tag from the environment variable
           LATEST_TAG=$LATEST_TAG
 
-          # Check if the tag follows the USSFence[<major>.<minor>.<patch>.<build>] format
-          if [[ $LATEST_TAG =~ USSFence\[([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)\] ]]; then
-            # Extract the components of the version
-            MAJOR=${BASH_REMATCH[1]}
-            MINOR=${BASH_REMATCH[2]}
-            PATCH=${BASH_REMATCH[3]}
-            BUILD=${BASH_REMATCH[4]}
+          # Extract version numbers from the tag (assumes format USSFence[major.minor.patch.build])
+          VERSION=$(echo $LATEST_TAG | sed -E 's/USSFence\[([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)\]/\1.\2.\3.\4/')
+          
+          # Increment the build number (last digit)
+          IFS='.' read -r major minor patch build <<< "$VERSION"
+          ((build++))
+          NEW_VERSION="$major.$minor.$patch.$build"
 
-            # Increment the build version (you can change this logic to increment minor/major if needed)
-            BUILD=$((BUILD + 1))
-
-            # Construct the new tag
-            NEW_TAG="USSFence[$MAJOR.$MINOR.$PATCH.$BUILD]"
-          else
-            # If no tag follows the USSFence format, start from 1.0.0.0
-            NEW_TAG="USSFence[1.0.0.1]"
-          fi
-
-          # Output the new tag
+          # Create new version in USSFence format
+          NEW_TAG="USSFence[$NEW_VERSION]"
           echo "New version tag will be: $NEW_TAG"
           
           # Tag the current commit with the new version
