@@ -31,14 +31,14 @@ jobs:
           }
 
           Write-Host "Latest Tag: $LATEST_TAG"
-          
-          # Save the latest tag as an output
-          echo "::set-output name=LATEST_TAG::$LATEST_TAG"
+
+          # Write the latest tag to the environment file so it can be used in the next step
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
 
       - name: Create new tag based on the latest tag
         run: |
-          # Get the latest tag from the output of the previous step
-          LATEST_TAG="${{ steps.get_latest_tag.outputs.LATEST_TAG }}"
+          # Fetch the latest tag from the environment variable
+          LATEST_TAG="${{ env.LATEST_TAG }}"
 
           # If the latest tag is USSFence[1.0.0.0], use it as the new tag
           if [ "$LATEST_TAG" == "USSFence[1.0.0.0]" ]; then
