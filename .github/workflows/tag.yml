@@ -20,28 +20,31 @@ jobs:
           git fetch --tags
 
           # Try to get the latest tag, fall back to USSFence[1.0.0.0] if no tags exist
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "USSFence[1.0.0.0]")
-          echo "Latest Tag: $LATEST_TAG"
+          $LATEST_TAG = git describe --tags --abbrev=0 2>$null
+          if (-not $LATEST_TAG) {
+              $LATEST_TAG = "USSFence[1.0.0.0]"
+          }
+          Write-Host "Latest Tag: $LATEST_TAG"
           
           # Output the latest tag so it can be used in subsequent steps
           echo "latest_tag=$LATEST_TAG" >> $GITHUB_ENV
 
       - name: Create new tag based on the latest tag
         run: |
-          # Fetch the latest tag from the environment variableggjg
-          LATEST_TAG=$LATEST_TAG
+          # Fetch the latest tag from the environment variable
+          $LATEST_TAG = $env:latest_tag
 
           # Extract version numbers from the tag (assumes format USSFence[major.minor.patch.build])
-          VERSION=$(echo $LATEST_TAG | sed -E 's/USSFence\[([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)\]/\1.\2.\3.\4/')
+          $VERSION = $LATEST_TAG -replace "USSFence\[([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)\]", '$1.$2.$3.$4'
           
           # Increment the build number (last digit)
-          IFS='.' read -r major minor patch build <<< "$VERSION"
-          ((build++))
-          NEW_VERSION="$major.$minor.$patch.$build"
+          $versionParts = $VERSION -split '\.'
+          $build = [int]$versionParts[3] + 1
+          $NEW_VERSION = "$($versionParts[0]).$($versionParts[1]).$($versionParts[2]).$build"
 
           # Create new version in USSFence format
-          NEW_TAG="USSFence[$NEW_VERSION]"
-          echo "New version tag will be: $NEW_TAG"
+          $NEW_TAG = "USSFence[$NEW_VERSION]"
+          Write-Host "New version tag will be: $NEW_TAG"
           
           # Tag the current commit with the new version
           git tag "$NEW_TAG"
