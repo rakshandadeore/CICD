@@ -1,56 +1,67 @@
-name: Deploy Acumatica Customization
+name: Create and Push Incremental Tag on Main Branch
 
 on:
   push:
-    tags:
-      - '*'  # Trigger on any tag push
-  workflow_dispatch:  # Manual trigger without requiring versionName input
+    branches:
+      - main
 
 jobs:
-  build_and_publish:
-    runs-on: self-hosted
+  create-tag:
+    runs-on: [self-hosted, windows]  # Specify the label of your self-hosted runner
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Set Up .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: 8.0.x
-     
-      - name: Build CustomizationPackageTools.exe
+      - name: Set up Git configuration
         run: |
-          cd CustomizationPackageTools
-          dotnet build --configuration Release
-          cd ..
-        shell: powershell
-      
-      - name: Extract Version from Tag
-        if: startsWith(github.ref, 'refs/tags/')
-        shell: powershell
-        run: |
-          $versionName = "${{ github.ref }}".Replace('refs/tags/', '')
-          echo "VERSION_NAME=$versionName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
 
-            Write-Host "RUNNNNNNNNNNNN"
-      - name: Run Build Customization
-        shell: powershell
+      - name: Get the latest tag or set default
+        id: get_latest_tag
+        shell: pwsh  # Explicitly use PowerShell
         run: |
-          ./buildCustomization.ps1 "${{ env.VERSION_NAME }}"
+          # Get the latest tag from the repository
+          $LATEST_TAG = git tag -l 'USSFence[*]' | Sort-Object | Select-Object -Last 1
 
-               Write-Host "BUNNNNNNNNNNNN"
-      - name: Run Publish Customization
-        shell: powershell
-        env:
-          ACUMATICA_URL: ${{ secrets.ACUMATICA_URL }}
-          ACUMATICA_USERNAME: ${{ secrets.ACUMATICA_USERNAME }}
-          ACUMATICA_PASSWORD: ${{ secrets.ACUMATICA_PASSWORD }}
+          # If no tags exist, set the default tag
+          if (-not $LATEST_TAG) {
+            $LATEST_TAG = "USSFence[1.0.0.0]"
+          }
+
+          Write-Host "Latest tag found: $LATEST_TAG"
+
+          # Extract version number and increment it
+          $VERSION_PARTS = $LATEST_TAG -replace '^USSFence\[(\d+\.\d+\.\d+\.\d+)\]$', '$1'
+          
+          if (-not $VERSION_PARTS) {
+            Write-Error "Error: Could not parse version from tag $LATEST_TAG"
+            exit 1
+          }
+
+          # Split version into parts (major, minor, patch, build)
+          $VERSION_ARRAY = $VERSION_PARTS -split '\.'
+
+          # Increment the build number (last part) to generate the next version
+          $BUILD_NUM = [int]$VERSION_ARRAY[3]
+          $BUILD_NUM++
+
+          # Construct the new tag with incremented build number
+          $NEW_TAG = "USSFence[$($VERSION_ARRAY[0]).$($VERSION_ARRAY[1]).$($VERSION_ARRAY[2]).$BUILD_NUM]"
+          
+          Write-Host "New tag to create: $NEW_TAG"
+          echo "new_tag=$NEW_TAG" >> $env:GITHUB_ENV  # Set the new tag as an environment variable
+
+      - name: Create a new tag
+        shell: pwsh  # Explicitly use PowerShell
         run: |
-          ./publishCustomization.ps1 "${{ env.VERSION_NAME }}"
+          $NEW_TAG = $env:new_tag
+          git tag $NEW_TAG
+          Write-Host "Tag created: $NEW_TAG"
 
-      - name: Upload ZIP Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: acumatica-customization
-          path: Customization/${{ env.VERSION_NAME }}/*.zip
+      - name: Push the new tag to the repository
+        shell: pwsh  # Explicitly use PowerShell
+        run: |
+          $NEW_TAG = $env:new_tag
+          git push origin $NEW_TAG
