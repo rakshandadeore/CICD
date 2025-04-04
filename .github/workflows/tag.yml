@@ -7,59 +7,64 @@ on:
 
 jobs:
   create_tag:
-    runs-on: self-hosted
+    runs-on: self-hosted  # Ensure you are using a self-hosted runner if needed
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Fetch all tags from the remote
+        run: |
+          echo "Fetching all tags from the remote..."
+          git fetch --tags
+
       - name: Get the latest tag
         id: get_latest_tag
         run: |
-          echo "Fetching all tags from the remote..."
-          # Fetch all tags from the remote
-          git fetch --tags
-          
-          # Check if git fetch succeeded
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "Failed to fetch tags from the remote."
-            exit 1
-          }
-
           echo "Attempting to get the latest tag..."
-          try {
-            # Attempt to get the latest tag
-            $LATEST_TAG = git describe --tags --abbrev=0 2>$null
-            if (-not $LATEST_TAG) {
-                throw "No tags found"
-            }
-          }
-          catch {
-            # Fallback to USSFence[1.0.0.0] if no tags found
-            $LATEST_TAG = "USSFence[1.0.0.0]"
-          }
           
-          Write-Host "Latest Tag: $LATEST_TAG"
-
-          # Write the latest tag to the environment file so it can be used in the next step
-          echo "LATEST_TAG=$LATEST_TAG" >> $env:GITHUB_ENV
+          # Try to get the latest tag, fallback to USSFence[1.0.0.0] if no tags exist
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "USSFence[1.0.0.0]")
+          
+          echo "Latest Tag: $LATEST_TAG"
+          
+          # Output the latest tag to be used in the next steps
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
 
       - name: Check if LATEST_TAG is set
         run: |
-          # Print the environment variable in PowerShell
-          Write-Host "LATEST_TAG from previous step: $env:LATEST_TAG"
+          # Print the environment variable to ensure it's set correctly
+          echo "LATEST_TAG from previous step: ${{ env.LATEST_TAG }}"
 
       - name: Create new tag based on the latest tag
         run: |
           # Fetch the latest tag from the environment variable
-          $LATEST_TAG = $env:LATEST_TAG
-
-          Write-Host "LATEST_TAG value: $LATEST_TAG"
+          LATEST_TAG="${{ env.LATEST_TAG }}"
           
-          # If the latest tag is USSFence[1.0.0.0], use it as the new tag
-          if ($LATEST_TAG -eq "USSFence[1.0.0.0]") {
-            Write-Host "Using the fallback tag: $LATEST_TAG"
-            $NEW_TAG = "USSFence[1.0.0.0]"
-          } else {
+          echo "LATEST_TAG value: $LATEST_TAG"
+          
+          # Check if the latest tag is the fallback tag
+          if [ "$LATEST_TAG" == "USSFence[1.0.0.0]" ]; then
+            echo "Using the fallback tag: $LATEST_TAG"
+            NEW_TAG="USSFence[1.0.0.0]"
+          else
             # Extract version numbers from the tag (assumes format USSFence[major.minor.patch.build])
-            $VERSION = $LATEST_TAG -replace "USSFence\[([0-9]+)\.([0-9]+)\.([0-9]+)\.([_
+            VERSION=$(echo "$LATEST_TAG" | sed -E 's/USSFence\[([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)\]/\1.\2.\3.\4/')
+            echo "Extracted VERSION: $VERSION"
+            
+            # Increment the build number (last digit)
+            IFS='.' read -r major minor patch build <<< "$VERSION"
+            ((build++))
+            NEW_VERSION="$major.$minor.$patch.$build"
+            
+            # Create new version in USSFence format
+            NEW_TAG="USSFence[$NEW_VERSION]"
+          fi
+          
+          echo "New version tag will be: $NEW_TAG"
+          
+          # Tag the current commit with the new version
+          git tag "$NEW_TAG"
+          
+          # Push the new tag to the remote
+          git push origin "$NEW_TAG"
