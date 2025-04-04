@@ -69,4 +69,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GITHUB_TOKEN
         run: |
           $NEW_TAG = $env:new_tag
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/rakshandadeore/CICD.git $NEW_TAG
+          git push origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/rakshandadeore/CICD.git $NEW_TAG
+
+
+        
