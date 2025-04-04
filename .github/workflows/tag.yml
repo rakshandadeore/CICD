@@ -28,7 +28,7 @@ jobs:
 
       - name: Create new tag based on the latest tag
         run: |
-          # Fetch the latest tag from the environment variable
+          # Fetch the latest tag from the environment variableggjg
           LATEST_TAG=$LATEST_TAG
 
           # Extract version numbers from the tag (assumes format USSFence[major.minor.patch.build])
