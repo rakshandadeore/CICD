@@ -35,6 +35,8 @@ jobs:
           # Write the latest tag to the environment file so it can be used in the next step
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
 
+            Write-Host "Wrritten Tag in ENV "
+
       - name: Create new tag based on the latest tag
         run: |
           # Fetch the latest tag from the environment variable
