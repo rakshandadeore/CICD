@@ -7,8 +7,8 @@ on:
 
 jobs:
   create-tag:
-    runs-on: self-hosted
-    
+    runs-on: [self-hosted]  # Specify your self-hosted runner
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -20,45 +20,50 @@ jobs:
 
       - name: Get the latest tag or set default
         id: get_latest_tag
+        shell: pwsh  # Explicitly use PowerShell
         run: |
           # Get the latest tag from the repository
-          LATEST_TAG=$(git tag -l 'USSFence[*]' | sort -V | tail -n 1)
-          
-          # If no tags exist, set the default tag
-          if [ -z "$LATEST_TAG" ]; then
-            LATEST_TAG="USSFence[1.0.0.0]"
-          fi
+          $LATEST_TAG = git tag -l 'USSFence-*' | Sort-Object | Select-Object -Last 1
 
-          echo "Latest tag found: $LATEST_TAG"
+          # If no tags exist, set the default tag
+          if (-not $LATEST_TAG) {
+            $LATEST_TAG = "USSFence-1.0.0.0"
+          }
+
+          Write-Host "Latest tag found: $LATEST_TAG"
 
           # Extract version number and increment it
-          VERSION_PARTS=$(echo $LATEST_TAG | sed 's/^USSFence\[\([0-9]*\.[0-9]*\.[0-9]*\.[0-9]*\)\]$/\1/')
+          $VERSION_PARTS = $LATEST_TAG -replace '^USSFence-(\d+\.\d+\.\d+\.\d+)$', '$1'
           
-          if [ -z "$VERSION_PARTS" ]; then
-            echo "Error: Could not parse version from tag $LATEST_TAG"
+          if (-not $VERSION_PARTS) {
+            Write-Error "Error: Could not parse version from tag $LATEST_TAG"
             exit 1
-          fi
+          }
 
           # Split version into parts (major, minor, patch, build)
-          IFS='.' read -r -a VERSION_ARRAY <<< "$VERSION_PARTS"
-          
+          $VERSION_ARRAY = $VERSION_PARTS -split '\.'
+
           # Increment the build number (last part) to generate the next version
-          BUILD_NUM=${VERSION_ARRAY[3]}
-          BUILD_NUM=$((BUILD_NUM + 1))
+          $BUILD_NUM = [int]$VERSION_ARRAY[3]
+          $BUILD_NUM++
 
           # Construct the new tag with incremented build number
-          NEW_TAG="USSFence[${VERSION_ARRAY[0]}.${VERSION_ARRAY[1]}.${VERSION_ARRAY[2]}.$BUILD_NUM]"
+          $NEW_TAG = "USSFence-$($VERSION_ARRAY[0]).$($VERSION_ARRAY[1]).$($VERSION_ARRAY[2]).$BUILD_NUM"
           
-          echo "New tag to create: $NEW_TAG"
-          echo "::set-output name=new_tag::$NEW_TAG"
+          Write-Host "New tag to create: $NEW_TAG"
+          echo "new_tag=$NEW_TAG" >> $env:GITHUB_ENV  # Set the new tag as an environment variable
 
       - name: Create a new tag
+        shell: pwsh  # Explicitly use PowerShell
         run: |
-          NEW_TAG="${{ steps.get_latest_tag.outputs.new_tag }}"
+          $NEW_TAG = $env:new_tag
           git tag $NEW_TAG
-          echo "Tag created: $NEW_TAG"
+          Write-Host "Tag created: $NEW_TAG"
 
       - name: Push the new tag to the repository
+        shell: pwsh  # Explicitly use PowerShell
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GITHUB_TOKEN
         run: |
-          NEW_TAG="${{ steps.get_latest_tag.outputs.new_tag }}"
-          git push origin $NEW_TAG
+          $NEW_TAG = $env:new_tag
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/rakshandadeore/CICD.git $NEW_TAG
