@@ -20,7 +20,7 @@ jobs:
 
       - name: Get the latest tag
         id: get_latest_tag
-        shell: pwsh
+        shell: powershell
         run: |
           echo "Attempting to get the latest tag..."
 
@@ -45,7 +45,7 @@ jobs:
           echo "LATEST_TAG from previous step: ${{ env.LATEST_TAG }}"
 
       - name: Create new tag based on the latest tag
-        shell: pwsh
+        shell: powershell
         run: |
           # Fetch the latest tag from the environment variable
           $LATEST_TAG = $env:LATEST_TAG
