@@ -1,10 +1,18 @@
 name: Deploy Acumatica Customizationnnn
 
 on:
+  workflow_call:
+    inputs:
+      appName:
+        description: 'github-action-cicd'
+        required: true
+        type: string
   workflow_run:
     workflows: ["Create and Push Incremental Tag on Main Branch"]  # Name of the first workflow
     types:
       - completed
+
+      
 
 jobs:
   build_and_publish:
@@ -32,9 +40,8 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         shell: powershell
         run: | 
-          run: echo "New Tag: ${{ steps.get_latest_tag.outputs.new_tag  }}"
-          run: echo "New Tag: ${{ github.event.workflow_run.outputs.new_tag }}"
-          $versionName =${{ github.event.workflow_run.outputs.new_tag }}
+          run: echo "New Tag:${{ inputs.appName }}"    
+          $versionName =${{ inputs.appName }}
           echo "VERSION_NAME=$versionName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
       - name: Run Build Customization

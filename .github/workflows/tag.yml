@@ -10,6 +10,9 @@ permissions:
   id-token: write   # Allow GitHub Actions to authenticate with GitHub (if needed)
 
 jobs:
+
+  
+
   create-tag:
     runs-on: [self-hosted]  # Specify your self-hosted runner
 
@@ -98,8 +101,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.CICDTOKENNEW }}
 
-    outputs:
-        new_tag: ${{ steps.get_latest_tag.outputs.new_tag }}  # Setting the output at the job level
+ # cicd:
+      - name: ENV  
+        uses: ./.github/workflows/tag.yml@main
+   
+        with:
+          appName: ${{ env.new_tag }}
 
      
 
