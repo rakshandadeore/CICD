@@ -88,10 +88,11 @@ jobs:
 
 
         # Step 5: Create GitHub release
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v1
+      - name: Create GitHub release      
+        uses: ncipollo/release-action@v1   
+        
         with:
-          tag_name: ${{ env.new_tag }} # Use the same tag name
+          tag: ${{ env.new_tag }} # Use the same tag name
           # release_name: 'Release v1.0.0'  # Optional: You can set a custom release name
           body: |
             This is the release for version 1.0.0.
@@ -99,3 +100,6 @@ jobs:
             - Fixed bug B
         env:
           GITHUB_TOKEN: ${{ secrets.CICDTOKENNEW }}
+
+
+          
