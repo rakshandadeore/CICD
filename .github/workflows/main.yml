@@ -32,6 +32,8 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         shell: powershell
         run: | 
+          run: echo "New Tag: ${{ steps.get_latest_tag.outputs.new_tag  }}"
+          run: echo "New Tag: ${{ github.event.workflow_run.outputs.new_tag }}"
           $versionName =${{ github.event.workflow_run.outputs.new_tag }}
           echo "VERSION_NAME=$versionName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
@@ -54,3 +56,5 @@ jobs:
         with:
           name: acumatica-customization
           path: Customization/${{ env.VERSION_NAME }}/*.zip
+
+   
