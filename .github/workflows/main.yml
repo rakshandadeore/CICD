@@ -1,6 +1,7 @@
 name: Deploy Acumatica Customizationnnn
 
 on:
+  
   workflow_call:
     inputs:
       appName:

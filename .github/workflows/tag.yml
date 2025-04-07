@@ -102,11 +102,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.CICDTOKENNEW }}
 
  # cicd:
-      - name: ENV  
-        uses: ./.github/workflows/workflow.yml@tag
-   
-        with:
-          appName: ${{ env.new_tag }}
+    
+      - name: GET SET IP
+        uses: actions/checkout@v2
+
+      - name: Process the tag
+        run: |
+          echo "Processing tag: ${{ inputs.appName }}"
 
      
 
