@@ -10,6 +10,9 @@ jobs:
   build_and_publish:
     runs-on: self-hosted
 
+
+
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -26,11 +29,17 @@ jobs:
           cd ..
         shell: powershell
       
+      - name: Use new tag from Workflow 1
+        run: |
+          echo "Using new tag from Workflow 1: ${{ github.event.workflow_run.conclusion }}"
+          echo "New tag: ${{ github.event.workflow_run.outputs.new_tag }}"
+
+
       - name: Extract Version from Tag
         if: startsWith(github.ref, 'refs/tags/')
         shell: powershell
         run: | 
-          $versionName =${{ secrets.MY_DYNAMIC_SECRET }}
+          $versionName =${{ github.event.workflow_run.outputs.new_tag }}
           echo "VERSION_NAME=$versionName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
       - name: Run Build Customization
