@@ -93,11 +93,7 @@ jobs:
         
         with:
           tag: ${{ env.new_tag }} # Use the same tag name
-          # release_name: 'Release v1.0.0'  # Optional: You can set a custom release name
-          body: |
-            This is the release for version 1.0.0.
-            - Added feature A
-            - Fixed bug B
+          # release_name: 'Release v1.0.0'  # Optional: You can set a custom release name        
         env:
           GITHUB_TOKEN: ${{ secrets.CICDTOKENNEW }}
 
