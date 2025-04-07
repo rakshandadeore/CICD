@@ -2,7 +2,7 @@ name: Deploy Acumatica Customizationnnn
 
 on:
   workflow_run:
-    workflows: ["tag"]  # Name of the first workflow
+    workflows: ["TESTTEST"]  # Name of the first workflow
     types:
       - completed
 
