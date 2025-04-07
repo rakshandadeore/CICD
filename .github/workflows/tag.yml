@@ -60,6 +60,7 @@ jobs:
 
           Write-Host "New tag to create: $NEW_TAG"
           echo "new_tag=$NEW_TAG" >> $env:GITHUB_ENV  # Set the new tag as an environment variable
+            echo "::set-output name=new_tag::$NEW_TAG"  # Set output for workflow_run trigger
 
       - name: Create a new tag
         shell: powershell  # Explicitly use PowerShell
@@ -97,12 +98,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.CICDTOKENNEW }}
 
-      - name: Set new tag as output
-        id: tag_output
-        run: echo "::set-output name=new_tag::${{ env.new_tag }}"
-        
-    outputs:
-      new_tag: ${{ steps.tag_output.outputs.new_tag }}
+     
 
 
  

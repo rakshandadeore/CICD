@@ -10,9 +10,6 @@ jobs:
   build_and_publish:
     runs-on: self-hosted
 
-
-
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -27,12 +24,8 @@ jobs:
           cd CustomizationPackageTools
           dotnet build --configuration Release
           cd ..
-        shell: powershell
-      
-      - name: Use new tag from Workflow 1
-        run: |
-          echo "Using new tag from Workflow 1: ${{ github.event.workflow_run.conclusion }}"
-          echo "New tag: ${{ github.event.workflow_run.outputs.new_tag }}"
+        shell: powershell     
+    
 
 
       - name: Extract Version from Tag
