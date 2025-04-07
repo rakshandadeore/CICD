@@ -1,10 +1,10 @@
 name: Deploy Acumatica Customizationnnn
 
 on:
-  push:
-    tags:
-      - '*'  # Trigger on any tag push
-  workflow_dispatch:  # Manual trigger without requiring versionName input
+  workflow_run:
+    workflows: ["tag"]  # Name of the first workflow
+    types:
+      - completed
 
 jobs:
   build_and_publish:
