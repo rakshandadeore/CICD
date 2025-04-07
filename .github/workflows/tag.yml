@@ -107,12 +107,11 @@ jobs:
       - name: Set state value
         id: set_state
         run: |
-          echo ${{ env.new_tag }} > state.txt  # Save the value to a file (you can also hardcode the value directly)
-          STATE=$(cat state.txt)   # Read the state from the file into a variable
+          echo ${{ env.new_tag }} > state.txt  # Use PowerShell to write to the file in Windows
+          $STATE = Get-Content -Path state.txt | Out-String  # Read the content of the file into the variable
           
-          # Encrypt the secret using GitHub's secrets API
-          echo "Encrypting the state for GitHub secret"
-          echo "::set-output name=secret_value::$STATE"  # Set the output for next step
+          # Set the output so it can be used in the next step
+          echo "::set-output name=secret_value::$STATE"
 
       - name: Store state value as GitHub Secret
         uses: actions/github-script@v6
