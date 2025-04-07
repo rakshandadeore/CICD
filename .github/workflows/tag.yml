@@ -108,7 +108,7 @@ jobs:
 
       - name: Process the tag
         run: |
-          echo "Processing tag: ${{ inputs.appName }}"
+          echo "Processing tag: ${{ env.new_tag }}"
 
      
 
