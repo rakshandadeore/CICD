@@ -99,7 +99,7 @@ jobs:
 
 
   save_secret:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -117,7 +117,7 @@ jobs:
       - name: Store state value as GitHub Secret
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.CICDTOKENNEW }}  # Authentication with GITHUB_TOKEN
+          #github-token: ${{ secrets.CICDTOKENNEW }}  # Authentication with GITHUB_TOKEN
           script: |
             const stateValue = "${{ steps.set_state.outputs.secret_value }}"; // The state to store
             const encodedValue = Buffer.from(stateValue).toString('base64');  // Encode the value to base64
@@ -129,4 +129,6 @@ jobs:
               encrypted_value: encodedValue,    // The encrypted value
             });
             console.log(response.data);
+        env:
+          GITHUB_TOKEN: ${{ secrets.CICDTOKENNEW }}
           
