@@ -103,7 +103,7 @@ jobs:
 
  # cicd:
       - name: ENV  
-        uses: ./.github/workflows/tag.yml@main
+        uses: ./.github/workflows/tag.yml
    
         with:
           appName: ${{ env.new_tag }}
