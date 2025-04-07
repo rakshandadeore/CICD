@@ -24,22 +24,22 @@ jobs:
           cd CustomizationPackageTools
           dotnet build --configuration Release
           cd ..
-        shell: pwsh
+        shell: powershell
       
       - name: Extract Version from Tag
         if: startsWith(github.ref, 'refs/tags/')
-        shell: pwsh
+        shell: powershell
         run: |
           $versionName = "${{ github.ref }}".Replace('refs/tags/', '')
           echo "VERSION_NAME=$versionName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
       - name: Run Build Customization
-        shell: pwsh
+        shell: powershell
         run: |
           ./buildCustomization.ps1 "${{ env.VERSION_NAME }}"
 
       - name: Run Publish Customization
-        shell: pwsh
+        shell: powershell
         env:
           ACUMATICA_URL: ${{ secrets.ACUMATICA_URL }}
           ACUMATICA_USERNAME: ${{ secrets.ACUMATICA_USERNAME }}
