@@ -98,4 +98,4 @@ jobs:
             - Added feature A
             - Fixed bug B
         env:
-          GITHUB_TOKEN: ${{ secrets.CICDTOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CICDTOKENNEW }}
