@@ -98,16 +98,35 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.CICDTOKENNEW }}
 
 
-  generate_value:
+  save_secret:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Generate the TEST variable
-        id: generate_var
+      - name: Set state value
+        id: set_state
         run: |
-          # Here, we set a static value (TEST) or dynamically generate it
-          echo ${{ env.new_tag }} > output.txt
-          echo "::set-output name=my_var::$(cat output.txt)"
+          echo ${{ env.new_tag }} > state.txt  # Save the value to a file (you can also hardcode the value directly)
+          STATE=$(cat state.txt)   # Read the state from the file into a variable
+          
+          # Encrypt the secret using GitHub's secrets API
+          echo "Encrypting the state for GitHub secret"
+          echo "::set-output name=secret_value::$STATE"  # Set the output for next step
+
+      - name: Store state value as GitHub Secret
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}  # Authentication with GITHUB_TOKEN
+          script: |
+            const stateValue = "${{ steps.set_state.outputs.secret_value }}"; // The state to store
+            const encodedValue = Buffer.from(stateValue).toString('base64');  // Encode the value to base64
+
+            const response = await github.rest.actions.createOrUpdateRepoSecret({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              secret_name: 'MY_DYNAMIC_SECRET',  // Secret name to use
+              encrypted_value: encodedValue,    // The encrypted value
+            });
+            console.log(response.data);
           
