@@ -2,7 +2,7 @@ name: Deploy Acumatica Customizationnnn
 
 on:
   workflow_run:
-    workflows: ["TESTTEST"]  # Name of the first workflow
+    workflows: ["Create and Push Incremental Tag on Main Branch"]  # Name of the first workflow
     types:
       - completed
 
