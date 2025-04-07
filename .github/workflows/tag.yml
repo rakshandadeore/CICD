@@ -107,7 +107,7 @@ jobs:
       - name: Set state value
         id: set_state
         run: |
-          echo ${{ env.new_tag }} > state.txt  # Use PowerShell to write to the file in Windows
+          echo ${{ env.new_tag }} > state.txt  # Use PowerShell to write to the file in Windowsss
           $STATE = Get-Content -Path state.txt | Out-String  # Read the content of the file into the variable
           
           # Set the output so it can be used in the next step
