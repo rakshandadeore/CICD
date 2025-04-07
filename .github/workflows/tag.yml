@@ -76,12 +76,26 @@ jobs:
           $NEW_TAG = $env:new_tag
           git push origin $NEW_TAG
 
-      - name: Create GitHub Release
+      # - name: Create GitHub Release
+      #   uses: softprops/action-gh-release@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.CICDTOKEN }}  # Use the GITHUB_TOKEN to authenticate
+      #   with:
+      #     tag_name: ${{ env.new_tag }}  # The tag you want to release
+      #     body: |
+      #       This is the release for version ${{ env.new_tag }}.
+      #       Check out the changes and updates.
+
+
+        # Step 5: Create GitHub release
+      - name: Create GitHub release
         uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.CICDTOKEN }}  # Use the GITHUB_TOKEN to authenticate
         with:
-          tag_name: ${{ env.new_tag }}  # The tag you want to release
+          tag_name: ${{ env.new_tag }} # Use the same tag name
+          # release_name: 'Release v1.0.0'  # Optional: You can set a custom release name
           body: |
-            This is the release for version ${{ env.new_tag }}.
-            Check out the changes and updates.
+            This is the release for version 1.0.0.
+            - Added feature A
+            - Fixed bug B
+        env:
+          GITHUB_TOKEN: ${{ secrets.CICDTOKEN }}
