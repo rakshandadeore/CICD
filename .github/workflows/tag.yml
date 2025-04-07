@@ -75,7 +75,7 @@ jobs:
         run: |
           $NEW_TAG = $env:new_tag
           git push origin $NEW_TAG
-
+         
       # - name: Create GitHub Release
       #   uses: softprops/action-gh-release@v1
       #   env:
@@ -98,4 +98,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.CICDTOKENNEW }}
 
 
+  generate_value:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Generate the TEST variable
+        id: generate_var
+        run: |
+          # Here, we set a static value (TEST) or dynamically generate it
+          echo ${{ env.new_tag }} > output.txt
+          echo "::set-output name=my_var::$(cat output.txt)"
           
